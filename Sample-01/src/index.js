@@ -6,6 +6,7 @@ import * as serviceWorker from "./serviceWorker";
 import { Auth0Provider } from "@auth0/auth0-react";
 import history from "./utils/history";
 import { getConfig } from "./config";
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>;
 
 const onRedirectCallback = (appState) => {
   history.push(
@@ -20,20 +21,22 @@ const config = getConfig();
 const providerConfig = {
   domain: config.domain,
   clientId: config.clientId,
+  connection: config.connection,
+  cacheLocation: "localstorage",
   onRedirectCallback,
+  useRefreshTokens: true,
   authorizationParams: {
     redirect_uri: window.location.origin,
-    ...(config.audience ? { audience: config.audience } : null),
+    //...(config.audience ? { audience: config.audience } : null),
+    // scope: "openid profile email offline_access read:getServices",
   },
 };
 
-const root = createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById("root"));
 root.render(
-  <Auth0Provider
-    {...providerConfig}
-  >
+  <Auth0Provider {...providerConfig}>
     <App />
-  </Auth0Provider>,
+  </Auth0Provider>
 );
 
 // If you want your app to work offline and load faster, you can change

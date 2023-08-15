@@ -4,9 +4,23 @@ import Highlight from "../components/Highlight";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
+import axios from "axios";
+import { getServices } from "./services";
 
 export const ExternalApiComponent = () => {
-  const { apiOrigin = "http://localhost:3001", audience } = getConfig();
+  const auth0Context = useAuth0();
+  const {
+    apiOrigin = "http://localhost:3001",
+    submgntAudience,
+    submgntScope,
+    submgntUrl,
+  } = getConfig();
+
+  const callServices = async () => {
+    await getServices(auth0Context);
+  };
+
+  callServices();
 
   const [state, setState] = useState({
     showResult: false,
@@ -14,11 +28,8 @@ export const ExternalApiComponent = () => {
     error: null,
   });
 
-  const {
-    getAccessTokenSilently,
-    loginWithPopup,
-    getAccessTokenWithPopup,
-  } = useAuth0();
+  const { getAccessTokenSilently, loginWithPopup, getAccessTokenWithPopup } =
+    useAuth0();
 
   const handleConsent = async () => {
     try {
@@ -34,7 +45,7 @@ export const ExternalApiComponent = () => {
       });
     }
 
-    await callApi();
+    //await callApi();
   };
 
   const handleLoginAgain = async () => {
@@ -51,31 +62,72 @@ export const ExternalApiComponent = () => {
       });
     }
 
-    await callApi();
+    // await callApi();
   };
 
   const callApi = async () => {
     try {
-      const token = await getAccessTokenSilently();
+      // let newToken = await getAccessTokenSilently({
+      //   authorizationParams: {
+      //     audience: submgntAudience,
+      //     scope: submgntScope,
+      //   },
+      // });
 
-      const response = await fetch(`${apiOrigin}/api/external`, {
+      var options = {
+        method: "POST",
+        url: "https://auth.devbrandbank.com/oauth/token",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "content-type": "application/x-www-form-urlencoded",
+          "Access-Control-Allow-Origin": window.location.origin,
         },
-      });
+        data: new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: "8uXj55w1HgS0XMq4Pb3HIBCnPHkve4zo",
+          client_secret:
+            "rvkQ5aP-xMplXNMXfMax3TybVcxQYNonYAaLIa7k3bGw656mF9gqR91yvSzgyPu1",
+          audience: "subscribermanagement-api",
+        }),
+      };
 
-      const responseData = await response.json();
+      axios
+        .request(options)
+        .then(function (response) {
+          console.log(response.data);
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+      let payload = {
+        scope: "All",
+      };
 
-      setState({
-        ...state,
-        showResult: true,
-        apiMessage: responseData,
-      });
+      //   const { response } = await axios.post(
+      //     submgntUrl + "/getContactLookUpFields",
+      //     payload,
+      //     {
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //         Accept: "application/json",
+      //         "Ocp-Apim-Subscription-Key":
+      //           process.env.REACT_APP_APIM_SUBSCRIPTION_KEY,
+      //         Authorization: `bearer ${newToken}`,
+      //       },
+      //     }
+      //   );
+
+      //   const responseData = await response.json();
+
+      //   setState({
+      //     ...state,
+      //     showResult: true,
+      //     apiMessage: responseData,
+      //   });
     } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
+      //   setState({
+      //     ...state,
+      //     error: error.error,
+      //   });
     }
   };
 
@@ -125,7 +177,7 @@ export const ExternalApiComponent = () => {
           using the API's audience value.
         </p>
 
-        {!audience && (
+        {true && (
           <Alert color="warning">
             <p>
               You can't call the API at the moment because your application does
@@ -175,7 +227,7 @@ export const ExternalApiComponent = () => {
           color="primary"
           className="mt-5"
           onClick={callApi}
-          disabled={!audience}
+          //disabled={!audience}
         >
           Ping API
         </Button>

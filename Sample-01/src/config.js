@@ -15,6 +15,10 @@ export function getConfig() {
   return {
     domain: configJson.domain,
     clientId: configJson.clientId,
+    connection: configJson.connection,
+    submgntAudience: configJson.submgntAudience,
+    submgntScope: configJson.submgntScope,
+    submgntUrl: configJson.submgntUrl,
     ...(audience ? { audience } : null),
   };
 }
